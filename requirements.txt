@@ -1,0 +1,6 @@
+PyYAML==6.0.1
+psutil==5.9.8
+paho-mqtt==2.0.0
+PyObjC==10.2
+rumps==0.4.0
+py2app==0.28.7
