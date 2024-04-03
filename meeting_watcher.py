@@ -7,7 +7,6 @@ import rumps
 import threading
 from time import sleep
 import paho.mqtt.client as mqtt
-from multiprocessing import Process, Queue
 
 APP_CONFIG = {
     "app": {
