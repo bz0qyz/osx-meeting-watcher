@@ -55,7 +55,7 @@ class StatusBarApp(rumps.App):
         """ Update the icon based on the status and state """
         if self.state and self.icon != self.icon_meeting:
             self.icon = self.icon_meeting
-        else:
+        elif not self.state:
             if self.status and self.icon != self.icon_watching:
                 self.icon = self.icon_watching
             elif not self.status and self.icon != self.icon_manual:
