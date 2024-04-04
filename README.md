@@ -15,7 +15,8 @@ A MacOS system tray application that can toggle an MQTT switch on and off. The a
 2. Unzip the downloaded file.
 3. Move the unzipped file to the Applications folder.
 4. Open the application.
-5. The application will appear in the system tray.
+5. Authorize the unsigned application by going to `System Preferences > Security & Privacy > General` and clicking `Open Anyway`. See [HERE](https://support.apple.com/guide/mac-help/apple-cant-check-app-for-malicious-software-mchleab3a043/13.0/mac/13.0) for more information.
+6. The application will appear in the system tray.
 
 ### Development Version
 1. Clone the repository.
