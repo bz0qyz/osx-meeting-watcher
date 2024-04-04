@@ -17,8 +17,10 @@ OPTIONS = {
     "plist": {
         'CFBundleName': APP_NAME,
         'CFBundleDisplayName': APP_NAME,
+        'CFBundleVersion': "1.0.1",
         'CFBundleIdentifier': "com.64byte.osx.meeting_watcher",
         'CFBundleGetInfoString': "Watch for Zoom Meetings and toggle a light",
+        'NSHumanReadableCopyright': u"The Unlicense",
         'LSUIElement': True,
     }
 }

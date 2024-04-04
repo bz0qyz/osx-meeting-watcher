@@ -1,13 +1,27 @@
 import yaml
 import signal
+import os
 import sys
 import argparse
 import psutil
 import rumps
 import threading
+import shutil
 from time import sleep
 import paho.mqtt.client as mqtt
 
+# create the config directory if it doesn't exist
+APP_CONFIG_DIR = f"{os.path.expanduser('~')}/.config/meeting_watcher"
+if not os.path.exists(f"{APP_CONFIG_DIR}"):
+    os.makedirs(f"{APP_CONFIG_DIR}")
+    shutil.copyfile("config.yaml", f"{APP_CONFIG_DIR}/config.yaml")
+
+APP_CONFIG_FILES = [
+    f"{APP_CONFIG_DIR}/config.yaml",
+    f"{os.path.expanduser('~')}/.meeting_watcher.yaml",
+    "config.yaml"
+]
+APP_CONFIG_FILE = None
 APP_CONFIG = {
     "app": {
         "name": "Meeting Watcher",
@@ -27,26 +41,40 @@ APP_CONFIG = {
         "zoom.us": ["CptHost", "aomhost"]
     }
 }
-# Read in the application config file
-try:
-    with open("config.yaml", "r") as config_file:
-        CONFIG = yaml.safe_load(config_file)
-        APP_CONFIG.update(CONFIG)
-except FileNotFoundError:
-    print("Config file not found")
-    exit(1)
-except yaml.YAMLError as e:
-    print(f"Error reading config file: {e}")
-    exit(1)
-except Exception as e:
-    print(f"Error reading config file: {e}")
-    exit(1)
 
+# Parse command line arguments
 argparser = argparse.ArgumentParser(description=f"{APP_CONFIG["app"]["name"]} v{APP_CONFIG["app"]["version"]}")
+argparser.add_argument("-c", "--config", help="config file to use", default=None)
 argparser.add_argument("--version", help="show version", action="version",
                        version=f"{APP_CONFIG["app"]["name"]} v{APP_CONFIG["app"]["version"]}")
 argparser.add_argument("-v", "--verbose", help="increase output verbosity", action="store_true")
 args = argparser.parse_args()
+
+if args.config:
+    APP_CONFIG_FILES.insert(0, args.config)
+
+# Read in the application config file
+for file in APP_CONFIG_FILES:
+    if os.path.exists(file):
+        APP_CONFIG_FILE = file
+        break
+print(f"Using config file: {APP_CONFIG_FILE}")
+if APP_CONFIG_FILE:
+    try:
+        with open(f"{APP_CONFIG_FILE}", "r") as config_file:
+            CONFIG = yaml.safe_load(config_file)
+            APP_CONFIG.update(CONFIG)
+    except FileNotFoundError:
+        print("Config file not found")
+        exit(1)
+    except yaml.YAMLError as e:
+        print(f"Error reading config file: {e}")
+        exit(1)
+    except Exception as e:
+        print(f"Error reading config file: {e}")
+        exit(1)
+
+
 
 
 class StatusBarApp(rumps.App):
@@ -63,6 +91,9 @@ class StatusBarApp(rumps.App):
                                               status_callback=self.status_callback,
                                               state_callback=self.state_callback,
                                               verbose=verbose)
+        if not self.meeting_watcher.connected:
+            rumps.alert(f"Error connecting to MQTT host: {app_config["mqtt"]["host"]}")
+            sys.exit(1)
 
         if self.verbose:
             print("StatusBarApp init")
@@ -124,16 +155,23 @@ class MeetingWatcher:
         self.state_callback = state_callback
         self.verbose = verbose
         self.meeting_state = False
+        self.connected = False
         self.running = False
         self.manual_on = False
 
         self.mqttc = mqtt.Client(mqtt.CallbackAPIVersion.VERSION2)
         self.mqttc.username_pw_set(self.mqtt_user, self.mqtt_password)
-        self.mqttc.connect(self.mqtt_host)
-        self.mqttc.on_connect = self.on_connect
-        self.mqttc.on_message = self.on_message
-        self.mqttc.subscribe(self.mqtt_publish_topic)
-        self.mqttc.loop_start()
+        try:
+            self.mqttc.connect(self.mqtt_host)
+            self.mqttc.on_connect = self.on_connect
+            self.connected = True
+            self.mqttc.on_message = self.on_message
+            self.mqttc.subscribe(self.mqtt_publish_topic)
+            self.mqttc.loop_start()
+        except Exception as e:
+            if verbose:
+                print(f"Error connecting to MQTT: {e}")
+
 
     def __payload_to_bool__(self, payload):
         if str(payload) in ["1", "true", "True"]:
