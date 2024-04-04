@@ -6,21 +6,34 @@ Usage:
 """
 
 from setuptools import setup
+from config import AppConfig
+APP_CONFIG = AppConfig()
 
-APP = ['meeting_watcher.py']
-APP_NAME = "Meeting Watcher"
+APP = ['main.py']
+APP_NAME = f"{APP_CONFIG.name}"
+APP_VERSION = f"{APP_CONFIG.version}"
+APP_DESCRIPTION = f"{APP_CONFIG.description}"
+APP_ID = f"{APP_CONFIG.identifier}"
+APP_LICENSE = f"{APP_CONFIG.license}"
 
-DATA_FILES = ["in_meeting.png", "watching.png", "icon.icns", "config.yaml"]
+DATA_FILES = [
+    "resources/meeting.png",
+    "resources/watching.png",
+    "resources/manual.png",
+    "resources/icon.icns",
+    "config-default.yaml"
+]
+
 OPTIONS = {
     "argv_emulation": True,
-    "iconfile": "icon.icns",
+    "iconfile": "resources/icon.icns",
     "plist": {
         'CFBundleName': APP_NAME,
         'CFBundleDisplayName': APP_NAME,
-        'CFBundleVersion': "1.0.1",
-        'CFBundleIdentifier': "com.64byte.osx.meeting_watcher",
-        'CFBundleGetInfoString': "Watch for Zoom Meetings and toggle a light",
-        'NSHumanReadableCopyright': u"The Unlicense",
+        'CFBundleVersion': APP_VERSION,
+        'CFBundleIdentifier': APP_ID,
+        'CFBundleGetInfoString': APP_DESCRIPTION,
+        'NSHumanReadableCopyright': APP_LICENSE,
         'LSUIElement': True,
     }
 }

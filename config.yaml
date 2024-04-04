@@ -1,9 +1,0 @@
-mqtt:
-  host: "192.168.8.22"
-  user: "mqtt-client"
-  password: ""
-  publish_topic: "bz0qyz/in_meeting"
-proc:
-  zoom.us:
-    - "CptHost"
-    - "aomhost"

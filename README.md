@@ -1,11 +1,17 @@
 # MacOS Meeting Watcher
-A MacOS system tray application that can toggle an MQTT switch on and off. The application is written in Python and uses the [rumps](https://rumps.readthedocs.io/en/latest/index.html) module.
+A MacOS system tray application that can toggle an MQTT switch on and off.
+
+The application can detect meetings in two ways:
+1. Watching for Zoom meetings using the process.
+2. Watching for an in-use microphone.
+
+The application is written in Python and uses the [rumps](https://rumps.readthedocs.io/en/latest/index.html) module.
 
 ## Screenshots
 |Image|Description|
 |---|---|
 |![App Menu](doc/app-menu.png)|Application Menu|
-|![Watching for Zoom Meeting](doc/watching-zoom.png)|Watching for Zoom Meeting|
+|![Watching for Zoom Meeting](doc/watching-zoom.png)|Watching for Meeting|
 |![In a Meeting](doc/in-meeting.png)|In a Meeting|
 
 

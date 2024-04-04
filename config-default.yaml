@@ -1,0 +1,21 @@
+options:
+  notifications: true
+  watch_interval: 5
+watch:
+  proc: false
+  microphone: true
+mqtt:
+  host: "127.0.0.1"
+  port: 1883
+  user: "mqtt-client"
+  password: ""
+  publish_topic: "meeting/watcher"
+
+proc:
+# Help: Processes to watch for that indicate a meeting is in progress
+# Example:
+# top-level-process-name:
+#   - child-process-name
+  zoom.us:
+    - "CptHost"
+    - "aomhost"
