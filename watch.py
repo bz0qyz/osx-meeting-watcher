@@ -56,7 +56,7 @@ class MeetingWatcher:
             self.mqttc.subscribe(self.mqtt_publish_topic)
             self.mqttc.loop_start()
         except Exception as e:
-            if verbose:
+            if self.verbose:
                 print(f"Error connecting to MQTT: {e}")
 
         if self.verbose:
