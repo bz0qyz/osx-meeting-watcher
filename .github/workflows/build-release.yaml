@@ -34,7 +34,7 @@ jobs:
       - name: Zip the .app bundle
         run: |
           cd dist
-          app_name=$(ls *.app | head -n 1)
+          app_name=$(find . -maxdepth 1 -name "*.app" -type d | head -n 1)
           zip_name="${app_name%.app}.zip"
           ditto -c -k --sequesterRsrc --keepParent "$app_name" "$zip_name"
           echo "ZIP_NAME=$zip_name" >> $GITHUB_ENV
