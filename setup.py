@@ -25,7 +25,7 @@ DATA_FILES = [
 ]
 
 OPTIONS = {
-    "argv_emulation": True,
+    "argv_emulation": False,
     "iconfile": "resources/icon.icns",
     "plist": {
         'CFBundleName': APP_NAME,

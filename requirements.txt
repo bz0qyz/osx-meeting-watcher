@@ -3,4 +3,7 @@ psutil==5.9.8
 paho-mqtt==2.0.0
 PyObjC==10.2
 rumps==0.4.0
-py2app==0.28.7
+py2app==0.28.8
+pyinstaller==6.13.0
+jaraco.text==4.0.0
+setuptools==80.0.0
