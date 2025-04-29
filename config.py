@@ -1,11 +1,14 @@
 import os
+from pydoc import ispath
+
 import yaml
 import shutil
+import sqlite3
 
 class AppConfig():
     def __init__(self):
         self.name = "Meeting Watcher"
-        self.version = "1.1.1"
+        self.version = "1.1.2"
         self.description = "Watch for Meetings and toggle a binary MQTT topic"
         self.license = "The Unlicense"
         self.identifier = "com.64byte.osx.meeting_watcher"
@@ -27,6 +30,27 @@ class AppConfig():
             f"{self.app_path}/config.yaml",
             "config.yaml"
         ]
+        self.log_db_file = f"{self.user_config_path}{os.sep}log.db"
+
+        # Check if the user config directory exists and create it if it doesn't
+        if not os.path.exists(f"{self.user_config_path}"):
+            os.makedirs(f"{self.user_config_path}")
+            shutil.copyfile("config-default.yaml", f"{self.user_config_path}/config.yaml")
+
+        # Initialize the log database
+        log_db_conn = sqlite3.connect(f"{self.log_db_file}")
+        log_db_cursor = log_db_conn.cursor()
+        log_db_cursor.execute("""
+                   CREATE TABLE IF NOT EXISTS log (
+                       id INTEGER PRIMARY KEY,
+                       start_time DATETIME,
+                       end_time DATETIME,
+                       duration FLOAT
+                   )
+                               """)
+
+        log_db_conn.commit()
+        log_db_conn.close()
 
         # Set the icon path if running from source
         if os.path.isdir(f"{self.app_path}/resources"):
@@ -36,10 +60,7 @@ class AppConfig():
     def get_user_config(self, user_file=None, verbose=False):
         """ Load the user config file """
         self.verbose = verbose
-        # Check if the user config directory exists and create it if it doesn't
-        if not os.path.exists(f"{self.user_config_path}"):
-            os.makedirs(f"{self.user_config_path}")
-            shutil.copyfile("config-default.yaml", f"{self.user_config_path}/config.yaml")
+
 
         # If a config file is provided in args, add it to the list
         if user_file:

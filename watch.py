@@ -2,11 +2,14 @@ import threading
 import psutil
 from time import sleep
 import paho.mqtt.client as mqtt
+from logger import LogEntry
+
 class MeetingWatcher:
     def __init__(self, app_config, status_callback, state_callback):
         self.verbose = app_config.verbose
         self.error = None
         self.watch_interval = app_config.user_config.options["watch_interval"]
+        self.log_db_file = app_config.log_db_file
 
         # MQTT Config values
         self.mqtt_host = app_config.user_config.mqtt["host"]
@@ -127,6 +130,7 @@ class MeetingWatcher:
         return False
 
     def __run_thread__(self):
+        log_entry = None
         while self.running:
             if self.manual_on:
                 sleep(self.watch_interval)
@@ -144,10 +148,14 @@ class MeetingWatcher:
                 if self.verbose:
                     print("Meeting in progress")
                 self.publish("1")
+                log_entry = LogEntry(db_path=self.log_db_file, auto_start=True)
             elif not self.in_meeting and self.meeting_state:
                 if self.verbose:
                     print("Meeting ended")
                 self.publish("0")
+                if log_entry:
+                    log_entry.end()
+                    log_entry = None
             sleep(self.watch_interval)
 
         self.status_callback(False)
