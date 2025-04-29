@@ -1,0 +1,49 @@
+name: Build and Create Release
+on:
+  push:
+    tags:
+      - 'v[0-9]+.[0-9]+.[0-9]+'
+
+permissions:
+  contents: write
+
+jobs:
+  build-macos:
+    name: Build macOS App
+    runs-on: macos-latest
+
+    steps:
+      - name: Checkout source
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
+
+      - name: Build the app
+        run: |
+          chmod +x ./build-app.sh
+          ./build-app.sh
+
+      - name: Zip the .app bundle
+        run: |
+          cd dist
+          app_name=$(ls *.app | head -n 1)
+          zip_name="${app_name%.app}.zip"
+          ditto -c -k --sequesterRsrc --keepParent "$app_name" "$zip_name"
+          echo "ZIP_NAME=$zip_name" >> $GITHUB_ENV
+
+      - name: Create GitHub Release
+        uses: softprops/action-gh-release@v2
+        with:
+          name: ${{ github.ref_name }}
+          tag_name: ${{ github.ref_name }}
+          files: dist/${{ env.ZIP_NAME }}
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

@@ -17,7 +17,7 @@ The application is written in Python and uses the [rumps](https://rumps.readthed
 
 ## Installation
 ### Release Version (binary application)
-1. Download the latest release from the [releases](https://gitlab.com/bz0qyz/osx-meeting-watcher/-/releases) page.
+1. Download the latest release from the [releases](https://github.com/bz0qyz/osx-meeting-watcher/releases) page.
 2. Unzip the downloaded file.
 3. Move the unzipped file to the Applications folder.
 4. Open the application.
