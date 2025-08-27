@@ -1,7 +1,9 @@
 .DS_Store
 .idea/**
 __pycache__/**
+*.pyc
 build/
 dist/
 venv/**
+build.log
 

@@ -2,6 +2,62 @@ import rumps
 import sqlite3
 from watch import MeetingWatcher
 from logger import LogEntry
+import time
+import threading
+
+class Timer:
+    def __init__(self, app):
+        self.app = app
+        self._start_time = None
+        self._elapsed = 0.0
+        self.thread = None
+
+    def __update_app__(self):
+        while self.running and self.app.meeting_watcher.running:
+            self.app.title = self.elapsed_str
+            # print("updating timer")
+            time.sleep(1)
+
+
+    def start(self):
+        """Start or resume the timer."""
+        if self._start_time is None:
+            self._start_time = time.monotonic()
+            self.thread = threading.Thread(target=self.__update_app__)
+            self.thread.start()
+
+    def stop(self, reset=False):
+        """Stop/pause the timer and record elapsed time."""
+        if self._start_time is not None:
+            self._elapsed += time.monotonic() - self._start_time
+            self._start_time = None
+            self.thread = None
+            if reset:
+                self.reset()
+
+    def reset(self):
+        """Reset the timer to zero (stopped)."""
+        self._start_time = None
+        self._elapsed = 0.0
+
+    @property
+    def elapsed(self):
+        """Return the total elapsed time in seconds."""
+        if self._start_time is not None:
+            return self._elapsed + (time.monotonic() - self._start_time)
+        return self._elapsed
+
+    @property
+    def running(self):
+        return self._start_time is not None
+
+    @property
+    def elapsed_str(self):
+        """Return elapsed time as HH:MM:SS."""
+        total_seconds = int(self.elapsed)
+        hours, remainder = divmod(total_seconds, 3600)
+        minutes, seconds = divmod(remainder, 60)
+        return f"{hours:02}:{minutes:02}:{seconds:02}"
 
 
 class StatusBarApp(rumps.App):
@@ -17,6 +73,7 @@ class StatusBarApp(rumps.App):
         self.notifications = app_config.user_config.options["notifications"]
         self.status = True
         self.state = False
+        self.meeting_timer = Timer(app=self)
 
         # Initialize the rumps.App
         super(StatusBarApp, self).__init__(self.app_name, icon=self.icon_watching)
@@ -72,8 +129,12 @@ class StatusBarApp(rumps.App):
                 self.icon = self.icon_watching
             elif not self.status and self.icon != self.icon_manual:
                 self.icon = self.icon_manual
+
     def stop(self, _):
         rumps.quit_application()
+        self.meeting_timer.stop(reset=True)
+        self.title = None
+
     def status_callback(self, status):
         self.status = status
         self.__update_icon__()
@@ -87,18 +148,22 @@ class StatusBarApp(rumps.App):
     def state_callback(self, state):
         self.state = state
         self.__update_icon__()
-        if self.state and self.notifications:
-            rumps.notification(
-                title=f"{self.app_name}",
-                subtitle=None,
-                message="Meeting in Progress"
-            )
-        elif not self.state and self.notifications:
-            rumps.notification(
-                title=f"{self.app_name}",
-                subtitle=None,
-                message="Meeting Competed"
-            )
+        if self.state:
+            self.meeting_timer.start()
+            if self.notifications:
+                rumps.notification(
+                    title=f"{self.app_name}",
+                    subtitle=None,
+                    message="Meeting in Progress"
+                )
+        elif not self.state:
+            self.meeting_timer.stop(reset=True)
+            if self.notifications:
+                rumps.notification(
+                    title=f"{self.app_name}",
+                    subtitle=None,
+                    message="Meeting Competed"
+                )
 
     @rumps.clicked("Toggle Light")
     def toggle_light(self, _):
@@ -108,6 +173,7 @@ class StatusBarApp(rumps.App):
         else:
             self.meeting_watcher.publish("1")
             self.meeting_watcher.manual_on = True
+
     @rumps.clicked("Start Watching")
     def start(self, _):
         if not self.meeting_watcher.running:
@@ -122,6 +188,8 @@ class StatusBarApp(rumps.App):
             if self.verbose:
                 print("Stopping Meeting Watcher")
             self.meeting_watcher.stop()
+            self.meeting_timer.stop()
+            self.state = False
             self.__update_icon__()
 
     @rumps.clicked("Meeting Log")

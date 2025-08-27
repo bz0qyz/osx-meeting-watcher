@@ -8,7 +8,7 @@ import sqlite3
 class AppConfig():
     def __init__(self):
         self.name = "Meeting Watcher"
-        self.version = "1.1.2"
+        self.version = "1.1.3"
         self.description = "Watch for Meetings and toggle a binary MQTT topic"
         self.license = "The Unlicense"
         self.identifier = "com.64byte.osx.meeting_watcher"
